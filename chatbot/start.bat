@@ -1,4 +1,4 @@
 @echo off
 
-pip install .
-python main.py
+py -m pip install .
+py main.py

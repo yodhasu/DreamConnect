@@ -8,6 +8,16 @@ DreamConnect is a project by **Sigmalogy** that allows users to connect with the
 - [@yodhasu](https://github.com/yodhasu)
 - Add later...
 
+## Support
+
+If you like our work, you can support me on:
+
+- [Ko-fi](https://ko-fi.com/yodhasu56714)  
+  [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/yodhasu56714)
+
+- [Trakteer](https://trakteer.id/sigmalogy/tip)  
+  [![Support me on Trakteer](https://trakteer.id/images/donate-button.svg)](https://trakteer.id/sigmalogy/tip)
+
 ## Features
 
 - Live2D character viewer

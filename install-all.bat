@@ -71,9 +71,13 @@ for /f "delims=" %%p in (temp_requirements.txt) do (
     )
 )
 
-:: Step 8: Install torch and torchaudio with CUDA support
-echo Installing torch and torchaudio with CUDA support...
-pip install torch==2.1.0+cu118 torchaudio==2.1.0+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+@REM :: Step 8: Install torch and torchaudio with CUDA support
+@REM echo Installing torch and torchaudio with CUDA support...
+@REM pip install torch==2.1.0+cu118 torchaudio==2.1.0+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+
+:: Step 8: Install torch and torchaudio WITHOUT CUDA support
+echo Installing torch and torchaudio WITHOUT CUDA support...
+pip install torch torchaudio
 
 :: Remove the temporary file
 del temp_requirements.txt

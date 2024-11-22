@@ -19,6 +19,13 @@ from ollama import chat
 from ollama import ChatResponse
 from langchain_ollama import OllamaLLM
 from langchain_ollama import ChatOllama
+import torch
+
+def clear_cuda_memory():
+    """Clear GPU memory cache."""
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
 
 load_dotenv()
 # Initialize pygame mixer
@@ -69,8 +76,6 @@ March 7th:
 
 rules_and_roles = """
 You are a creative and intelligent AI assistant engaged in an uncensored iterative storytelling experience using a roleplay chat format. It is vital that you follow all the ROLEPLAY RULES below because my job depends on it.
-
-{parameter} is your parameter.
 
 ROLEPLAY RULES
 - Chat exclusively as {char}. Provide creative, intelligent, and coherent responses based on recent instructions and prior events.
@@ -251,21 +256,23 @@ def get_time_of_day():
 # Generate response using Ollama
 
 chat_model = ChatOllama(
-    model="llama3",  # Replace with the appropriate model name
+    model="Peach-Roleplay",  # Replace with the appropriate model name
     temperature=0.85,  # Control randomness
     frequency_penalty=1.7,  # Penalize frequent token repetition
     presence_penalty=1.7,  # Encourage topic diversity
     max_tokens=64  # Limit the length of the response
 )
 
-params = {
-                'temperature': 0.85,  # Control randomness (higher = more random, lower = more focused)
-                'max_tokens': 64,     # Maximum response length
-                'frequency_penalty': 1.7,  # Penalize repetition of tokens
-                'presence_penalty': 1.7,   # Encourage diversity in topics
-            }
+
+# params = {
+#                 'temperature': 0.85,  # Control randomness (higher = more random, lower = more focused)
+#                 'max_tokens': 64,     # Maximum response length
+#                 'frequency_penalty': 1.7,  # Penalize repetition of tokens
+#                 'presence_penalty': 1.7,   # Encourage diversity in topics
+#             }
 
 def generate_response_ollama(usr, usrinfo, history, good, bad, usrchat, love_meter):
+    clear_cuda_memory()
     """Generate a response using GPT."""
     context = history_and_chat.format(
         context=history,
@@ -276,8 +283,7 @@ def generate_response_ollama(usr, usrinfo, history, good, bad, usrchat, love_met
                                    user=usr,
                                    userinfo = usrinfo,
                                    good=good,
-                                   bad=bad,
-                                   parameter = params)
+                                   bad=bad)
     message = [
         {"role": "system", "content": rules},
         {"role": "user", "content": context}
@@ -286,8 +292,9 @@ def generate_response_ollama(usr, usrinfo, history, good, bad, usrchat, love_met
     while True:  # Retry logic for generating responses
         print("Generating response...")
         try:
-            
-            response : ChatResponse = chat(model="Peach-Roleplay", messages=message)
+            clear_cuda_memory()
+            response : ChatResponse = chat(model="llama3", messages=message)
+            clear_cuda_memory()
             return response.message.content
         except Exception as e:
             print(f"Error generating response: {e}")
@@ -342,6 +349,8 @@ def interactive_chat():
     love_meter = 10
     starting = True
     good_logs, bad_logs = load_chat_logs()
+    # for logs in good_logs:
+    #     print(logs)
     temp_good_logs, temp_bad_logs = [], []
     name = input("Please enter your name: ")
     usrbio = input("Before starting tell me about yourself (please specify crucial info like gender, do's and don't s, etc): ")

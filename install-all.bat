@@ -62,6 +62,13 @@ echo Installing dependencies...
     echo groq
 ) > temp_requirements.txt
 
+python -m nltk.downloader punkt
+python -m nltk.downloader averaged_perceptron_tagger
+python -m nltk.downloader maxent_ne_chunker
+python -m nltk.downloader words
+python -m nltk.downloader vader_lexicon
+echo All necessary NLTK data has been downloaded!
+
 :: Step 7: Install packages except torch and torchaudio
 for /f "delims=" %%p in (temp_requirements.txt) do (
     echo Checking package: %%p
@@ -90,5 +97,4 @@ echo Downloading NLTK data...
 python -m nltk.downloader punkt
 
 echo Setup complete! To activate the virtual environment, run "venv\Scripts\activate".
-echo To run your programs, use "python main.py" or "python backflask.py".
 pause

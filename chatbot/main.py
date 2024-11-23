@@ -62,8 +62,8 @@ history_and_chat = """
 Here is the conversation history: {context}
 {context} is your memory, try to keep up with the context, you are allowed to ask, be curious. You are allowed to finished your sentence without question.
 
-Lovemeter: {affection}
-High Lovemeter value make your answer more intimate, sexier, and aggresive
+this is your level of affection towards user {affection}
+High affection value make your answer more intimate, sexier, and aggresive
 
 Always answer in english and try to make short, spontant answer. swear and curse words are allowed.
 Try to sound more humane when answering, keep it up like a conversation.
@@ -293,9 +293,10 @@ def generate_response_ollama(usr, usrinfo, history, good, bad, usrchat, love_met
         print("Generating response...")
         try:
             clear_cuda_memory()
-            response : ChatResponse = chat(model="llama3", messages=message)
+            # response : ChatResponse = chat(model="llama3", messages=message)
+            response =chat_model.invoke(message)
             clear_cuda_memory()
-            return response.message.content
+            return response.content
         except Exception as e:
             print(f"Error generating response: {e}")
             time.sleep(1)

@@ -1,4 +1,4 @@
 @echo off
-start open_serve.bat
-call start_backend.bat
-start msedge http://localhost:8000
+start call start_backend.bat
+call..\venv\SCripts\activate
+python make_widget.py

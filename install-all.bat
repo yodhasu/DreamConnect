@@ -57,6 +57,8 @@ echo Installing dependencies...
     echo elevenlabs
     echo coqui-tts
     echo tqdm
+    echo pywebview
+    echo screeninfo
 ) > temp_requirements.txt
 
 :: Step 7: Install packages except torch and torchaudio

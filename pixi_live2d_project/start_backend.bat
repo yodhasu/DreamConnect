@@ -1,4 +1,5 @@
 @echo off
+call ..\venv\Scripts\activate
 cd ./Backend
 
-start "" python backflask.py
+python backflask.py

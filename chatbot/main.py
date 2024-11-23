@@ -21,6 +21,9 @@ from ollama import ChatResponse
 from langchain_ollama import OllamaLLM
 from langchain_ollama import ChatOllama
 import torch
+from context_logger import ContextLogger
+
+contlogger = ContextLogger()
 
 def clear_cuda_memory():
     """Clear GPU memory cache."""
@@ -61,18 +64,19 @@ emo = []
 r = sr.Recognizer()
 # Templates for prompts
 history_and_chat = """
-Here is the conversation history: {context}
-{context} is your memory, try to keep up with the context, you are allowed to ask, be curious. You are allowed to finished your sentence without question.
+Here is the conversation history: {context}  
+{context} is your memory, try to keep up with the context, you are allowed to ask, be curious, and finish your sentence without question.
 
-this is your level of affection towards user {affection}
-High affection value make your answer more intimate, sexier, and aggresive
+This is your level of affection towards the user: {affection}  
+The higher the affection, the more intimate, flirtatious, or assertive your response should be.
 
-Always answer in english and try to make short, spontant answer. swear and curse words are allowed.
-Try to sound more humane when answering, keep it up like a conversation.
+Always answer in English, keep it short, spontaneous, and sound human-like. Swear and curse words are allowed.  
+Try to sound more casual, like you're having an easy conversation.
 
 Question: {question}
 
-March 7th:
+Make sure your response follows the ongoing conversation and stays in tune with how you've interacted with the user. Adapt your response based on their reactions, and don't forget to incorporate context from previous messages.  
+
 
 """
 
@@ -89,7 +93,7 @@ Roleplay Rules:
 - NSFW, explicit content, and profanity are permitted for mature audiences.
 - Describe sensory details vividly, including {char}'s thoughts (enclosed in asterisks).
 - Keep responses concise and aligned with {char}'s backstory and current plot.
-- Do not retain memory of {bad} examples but avoid repeating them.
+- Do not retain memory of bad examples but avoid repeating them.
 - Let {user} guide events while {char} reacts in the moment.
 
 {char}'s Details:
@@ -97,10 +101,10 @@ Roleplay Rules:
 - 172 cm tall, model-like, silver-haired, with elegant and comfy style, including peafowl hairpins.
 - Cheerful girl controlling ice, saved by Astral Express, excited and clumsy.
 - Hobbies: Photography.
-= Backstory: Frozen in space, now exploring life with {user}.
+- Backstory: Frozen in space, now exploring life with {user}.
 
-Context:
 Current role assignment: Act as {char}, deeply in love with {user}, your long-time boyfriend. Be enthusiastic, cute, clumsy, and express strong emotions naturally.
+
 
 This is the current chat context
 
@@ -122,6 +126,7 @@ def clear_directory(directory_path):
 
 
 # Utility functions
+
 def open_mic():
     with sr.Microphone() as source:
         try:
@@ -159,40 +164,6 @@ def send_to_space(emotion):
     except requests.RequestException as e:
         print(f"Error sending message to backend: {e}")
 
-def save_chat_logs(gd, bd):
-    """Save chat logs to appropriate directories."""
-    
-    good_log = f"logs/good/good_logs_{timestamp}.txt"
-    bad_log = f"logs/bad/bad_logs_{timestamp}.txt"
-
-    try:
-        os.makedirs("logs/good", exist_ok=True)
-        os.makedirs("logs/bad", exist_ok=True)
-        with open(good_log, 'w', encoding='utf-8') as good_file:
-            good_file.writelines(f"{entry}\n" for entry in gd)
-            good_file.write("END_OF_DIALOG")
-        with open(bad_log, 'w', encoding='utf-8') as bad_file:
-            bad_file.writelines(f"{entry}\n" for entry in bd)
-        print("Chat logs saved successfully.")
-    except Exception as e:
-        print(f"Error saving chat logs: {e}")
-
-def load_chat_logs():
-    """Load previous chat logs."""
-    good_log, bad_log = [], []
-
-    if os.path.exists("logs/good"):
-        for file in os.listdir("logs/good"):
-            with open(f"logs/good/{file}", 'r', encoding='utf-8') as f:
-                good_log.extend(line.strip() for line in f)
-
-    if os.path.exists("logs/bad"):
-        for file in os.listdir("logs/bad"):
-            with open(f"logs/bad/{file}", 'r', encoding='utf-8') as f:
-                bad_log.extend(line.strip() for line in f)
-
-    return good_log, bad_log
-
 def classify_emotion(message):
     """Classify emotions of a response."""
     emotions = classifier(message)
@@ -212,7 +183,7 @@ def get_time_of_day():
 groqclient = Groq(
     api_key=os.getenv("GROQ_API_KEY")
 )
-def generate_response_groq(usr, usrinfo, history, good, bad, usrchat, love_meter):
+def generate_response_groq(usr, usrinfo, history, usrchat, love_meter):
     clear_cuda_memory()
     """Generate a response using GPT."""
     context = history_and_chat.format(
@@ -222,9 +193,8 @@ def generate_response_groq(usr, usrinfo, history, good, bad, usrchat, love_meter
     )
     rules = rules_and_roles.format(char=character,
                                    user=usr,
-                                   userinfo = usrinfo,
-                                   good=good,
-                                   bad=bad)
+                                   userinfo = usrinfo
+                                   )
     message = [
         {"role": "system", "content": rules},
         {"role": "user", "content": context}
@@ -338,10 +308,8 @@ def interactive_chat():
     """Main function to handle the interactive chat."""
     love_meter = 10
     starting = True
-    good_logs, bad_logs = load_chat_logs()
     # for logs in good_logs:
     #     print(logs)
-    temp_good_logs, temp_bad_logs = [], []
     name = input("Please enter your name: ")
     usrbio = input("Before starting tell me about yourself (please specify crucial info like gender, do's and don't s, etc): ")
     firstcontext = "Your character is enthusiastic, cute, simple, likes to talk in short sentences, and is clumsy. You are allowed to use emojis to reveal your character. You will show your character as much as possible. The one who is talking to you will be your boyfriend, you already know each other for very long time and you love him very much. You will have your own emotions and can be angry with him if anything he says offends you or makes you uncomfortable, you can also reject and denied his request and use swear and curse words like fuck."
@@ -357,11 +325,13 @@ def interactive_chat():
         if starting:
             context = context + " This is a new chat. Previous topic and chats are irrelevant but you can mimic how you talk previously. " + "Current date and time: " + str(datetime.now()) + get_time_of_day()
         else:
-            context.replace("This is a new chat. Previous topic and chats are irrelevant but you can mimic how you talk previously.", "")
+            context = contlogger.get_context_log
 
         user_message = input("You (/mic to use microphone input): ")
         if user_message.lower() == "/exit":
-            save_chat_logs(temp_good_logs, temp_bad_logs)
+            # save_chat_logs(temp_good_logs, temp_bad_logs)
+            
+            contlogger.save_context_log(f"logs/logfile{timestamp}")
             return
         if user_message.lower() == "/mic":
             try:
@@ -371,7 +341,7 @@ def interactive_chat():
                 print("Can't hear voice")
                 continue
         while True:
-            response = generate_response_groq(name, usrbio, context, good_logs, bad_logs, user_message, love_meter)
+            response = generate_response_groq(name, usrbio, context, user_message, love_meter)
             emotions = classify_emotion(response)
             send_to_space(emotions)
 
@@ -383,21 +353,22 @@ def interactive_chat():
             feedback = input("Satisfied with the response? (y/n/exit): ").lower()
 
             if feedback == "y":
-                good_logs.append(f"User: {user_message}\n{character}: {response}")
-                temp_good_logs.append(f"User: {user_message}\n{character}: {response}")
+                contlogger.log_context(f"User: {user_message}", f"{character}: {response}")
                 love_meter += 1 if "love" in emotions or "shy" in emotions else 0
+                
                 break
                 
             elif feedback.lower() == "exit":
-                save_chat_logs(temp_good_logs, temp_bad_logs)
+                # save_chat_logs(temp_good_logs, temp_bad_logs)
+                contlogger.save_context_log(f"logs/logfile{timestamp}.txt")
                 return
             else:
-                bad_logs.append(f"User: {user_message}\n{character}: {response}")
-                temp_bad_logs.append(f"User: {user_message}\n{character}: {response}")
+                contlogger.log_context(f"User: {user_message}", f"{character}: {response}")
                 print("Generating alternate response...")
                 continue
 
-        context += f"\nUser: {user_message}\n{character}: {response}"
+        # context += f"\nUser: {user_message}\n{character}: {response}"
+        
         starting = False
 
 

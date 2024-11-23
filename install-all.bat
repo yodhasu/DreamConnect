@@ -67,6 +67,7 @@ python -m nltk.downloader averaged_perceptron_tagger
 python -m nltk.downloader maxent_ne_chunker
 python -m nltk.downloader words
 python -m nltk.downloader vader_lexicon
+python -m spacy download en_core_web_sm
 echo All necessary NLTK data has been downloaded!
 
 :: Step 7: Install packages except torch and torchaudio

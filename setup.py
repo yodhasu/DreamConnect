@@ -21,11 +21,17 @@ setup(
         "flask-cors",
         "langchain",
         "g4f",  # Update or verify compatibility for your environment
-        "tensorflow>=2.10.0",
-        "torch>=2.0.0+cu118; platform_system=='Windows'",  # Adjust CUDA version based on your system
-        "torchaudio>=2.0.0+cu118; platform_system=='Windows'",
+        "tensorflow",
+        "torch",  # Adjust CUDA version based on your system
+        "torchaudio",
         "elevenlabs",
         "coqui-tts",
+        "pywebview",
+        "screeninfo",
+        "tqdm",
+        "tf-keras",
+        "langchain_ollama",
+        "groq",
     ],
     entry_points={
         "console_scripts": [

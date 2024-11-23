@@ -59,6 +59,7 @@ echo Installing dependencies...
     echo tqdm
     echo pywebview
     echo screeninfo
+    echo groq
 ) > temp_requirements.txt
 
 :: Step 7: Install packages except torch and torchaudio
